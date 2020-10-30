@@ -1,0 +1,39 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+group = 'com.github.figaf'
+version = '1.0'
+
+repositories {
+    jcenter()
+    maven { url "https://jitpack.io" }
+    mavenLocal()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+
+    api 'com.github.figaf:integration-commons:1.0-SNAPSHOT-rc005'
+    api 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    api 'org.junit.jupiter:junit-jupiter-params:5.7.0'
+
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.8'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.8'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
