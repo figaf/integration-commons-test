@@ -8,7 +8,7 @@ configurations.all {
 }
 
 group = 'com.github.figaf'
-version = '1.0-SNAPSHOT-rc001'
+version = '1.0'
 
 repositories {
     jcenter()
