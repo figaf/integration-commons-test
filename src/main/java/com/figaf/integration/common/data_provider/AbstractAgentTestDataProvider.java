@@ -26,7 +26,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         jsonMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
     }
 
-    protected AgentTestData buildAgentTestData(Path pathToTestData) {
+    protected static AgentTestData buildAgentTestData(Path pathToTestData) {
         final String agentTestDataTitle = pathToTestData.getName(pathToTestData.getNameCount() - 1).toString();
 
         final Platform platform;
@@ -74,15 +74,15 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         return new AgentTestData(agentTestDataTitle, platform, cloudPlatformType, connectionProperties);
     }
 
-    private String getHostPropertyName(String agentTestDataTitle) {
+    private static String getHostPropertyName(String agentTestDataTitle) {
         return String.format("agent-test-data.%s.host", agentTestDataTitle);
     }
 
-    private String getUsernamePropertyName(String agentTestDataTitle) {
+    private static String getUsernamePropertyName(String agentTestDataTitle) {
         return String.format("agent-test-data.%s.username", agentTestDataTitle);
     }
 
-    private String getPasswordPropertyName(String agentTestDataTitle) {
+    private static String getPasswordPropertyName(String agentTestDataTitle) {
         return String.format("agent-test-data.%s.password", agentTestDataTitle);
     }
 }

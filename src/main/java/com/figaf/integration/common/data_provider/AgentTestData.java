@@ -21,7 +21,7 @@ public class AgentTestData {
     private final ConnectionProperties connectionProperties;
 
     public RequestContext createRequestContext() {
-        return createRequestContext(null);
+        return createRequestContext("");
     }
 
     public RequestContext createRequestContext(String restTemplateWrapperKey) {
