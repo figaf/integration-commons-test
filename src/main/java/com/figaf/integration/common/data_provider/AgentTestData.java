@@ -1,17 +1,15 @@
 package com.figaf.integration.common.data_provider;
 
-import com.figaf.integration.common.entity.CloudPlatformType;
-import com.figaf.integration.common.entity.ConnectionProperties;
-import com.figaf.integration.common.entity.Platform;
-import com.figaf.integration.common.entity.RequestContext;
+import com.figaf.integration.common.entity.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 /**
  * @author Ilya Nesterov
  */
 @RequiredArgsConstructor
+@AllArgsConstructor
 @Getter
 public class AgentTestData {
 
@@ -20,26 +18,49 @@ public class AgentTestData {
     private final CloudPlatformType cloudPlatformType;
     private final ConnectionProperties connectionProperties;
 
+    private String loginPageUrl;
+    private String ssoUrl;
+
+    private String clientId;
+    private String clientSecret;
+    private String tokenUrl;
+    private AuthenticationType authenticationType;
+
     public RequestContext createRequestContext() {
         return createRequestContext("");
     }
 
     public RequestContext createRequestContext(String restTemplateWrapperKey) {
+        RequestContext requestContext;
         switch (platform) {
             case API_MANAGEMENT: {
-                return cloudPlatformType.equals(CloudPlatformType.NEO)
+                requestContext = cloudPlatformType.equals(CloudPlatformType.NEO)
                         ? RequestContext.apiMgmtNeo(connectionProperties)
                         : RequestContext.apiMgmtCloudFoundry(connectionProperties, restTemplateWrapperKey);
+                break;
             }
             case CPI: {
-                return cloudPlatformType.equals(CloudPlatformType.NEO)
+                requestContext = cloudPlatformType.equals(CloudPlatformType.NEO)
                         ? RequestContext.cpiNeo(connectionProperties)
                         : RequestContext.cpiCloudFoundry(connectionProperties, restTemplateWrapperKey);
+                break;
             }
             case PRO: {
-                return RequestContext.pro(connectionProperties);
+                requestContext = RequestContext.pro(connectionProperties);
+                break;
             }
+            default:
+                throw new IllegalArgumentException("Unsupported platform: " + platform);
         }
-        throw new IllegalArgumentException("Unsupported platform: " + platform);
+
+        requestContext.setClientId(clientId);
+        requestContext.setClientSecret(clientSecret);
+        requestContext.setOauthUrl(tokenUrl);
+        requestContext.setAuthenticationType(authenticationType);
+        requestContext.setSsoUrl(ssoUrl);
+        requestContext.setLoginPageUrl(loginPageUrl);
+
+        return requestContext;
+
     }
 }
