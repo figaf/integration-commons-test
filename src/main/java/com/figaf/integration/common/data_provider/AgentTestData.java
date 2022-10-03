@@ -24,8 +24,6 @@ public class AgentTestData {
     private String clientId;
     private String clientSecret;
     private String tokenUrl;
-
-    private String publicUrl;
     private AuthenticationType authenticationType;
 
     public RequestContext createRequestContext() {

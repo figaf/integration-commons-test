@@ -18,6 +18,7 @@ import java.nio.file.Path;
 public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider {
 
     protected static final ObjectMapper jsonMapper = new ObjectMapper();
+
     static {
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         jsonMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -58,6 +59,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         final String clientIdPropertyName = getClientIdPropertyName(agentTestDataTitle);
         final String clientSecretPropertyName = getClientSecretPropertyName(agentTestDataTitle);
         final String tokenUrlPropertyName = getTokenUrlPropertyName(agentTestDataTitle);
+        final String publicUrlPropertyName = getPublicUrlPropertyName(agentTestDataTitle);
 
         final String host = System.getProperty(hostPropertyName);
         final String username = System.getProperty(usernamePropertyName);
@@ -66,10 +68,10 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         final String loginUrl = System.getProperty(getLoginUrlPropertyName(agentTestDataTitle));
         final String ssoUrl = System.getProperty(getSsoUrlPropertyName(agentTestDataTitle));
 
-        final String clientId = System.getProperty(getClientIdPropertyName(agentTestDataTitle));
-        final String clientSecret = System.getProperty(getClientSecretPropertyName(agentTestDataTitle));
-        final String tokenUrl = System.getProperty(getTokenUrlPropertyName(agentTestDataTitle));
-        final String publicUrl = System.getProperty(getTokenUrlPropertyName(agentTestDataTitle));
+        final String clientId = System.getProperty(clientIdPropertyName);
+        final String clientSecret = System.getProperty(clientSecretPropertyName);
+        final String tokenUrl = System.getProperty(tokenUrlPropertyName);
+        final String publicUrl = System.getProperty(publicUrlPropertyName);
 
         if (AuthenticationType.BASIC.equals(authenticationType)) {
             if (StringUtils.isBlank(host))
@@ -87,12 +89,19 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
                 throw new IllegalArgumentException(String.format("Property %s is not defined", clientSecretPropertyName));
             if (StringUtils.isBlank(tokenUrl))
                 throw new IllegalArgumentException(String.format("Property %s is not defined", tokenUrlPropertyName));
+            if (Platform.API_MANAGEMENT.equals(platform)) {
+                if (StringUtils.isBlank(publicUrl)){
+                    throw new IllegalArgumentException(String.format("Property %s is not defined", publicUrlPropertyName));
+                }
+            }
         }
+
+        boolean isApimgmtCfOauth = Platform.API_MANAGEMENT.equals(platform) && AuthenticationType.OAUTH.equals(authenticationType);
 
         ConnectionProperties connectionProperties = new ConnectionProperties(
                 username,
                 password,
-                host,
+                isApimgmtCfOauth ? publicUrl : host,
                 "443",
                 "https"
         );
@@ -107,7 +116,6 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
                 clientId,
                 clientSecret,
                 tokenUrl,
-                publicUrl,
                 authenticationType
         );
     }
