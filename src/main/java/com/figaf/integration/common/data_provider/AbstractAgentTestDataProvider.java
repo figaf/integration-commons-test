@@ -18,6 +18,7 @@ import java.nio.file.Path;
 public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider {
 
     protected static final ObjectMapper jsonMapper = new ObjectMapper();
+
     static {
         jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         jsonMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -42,6 +43,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         } else if (agentTestDataTitle.startsWith("apimgmt-cf")) {
             platform = Platform.API_MANAGEMENT;
             cloudPlatformType = CloudPlatformType.CLOUD_FOUNDRY;
+            authenticationType = agentTestDataTitle.startsWith("apimgmt-cf-oauth") ? AuthenticationType.OAUTH : AuthenticationType.BASIC;
         } else if (agentTestDataTitle.startsWith("pro")) {
             platform = Platform.PRO;
             cloudPlatformType = null;
@@ -54,6 +56,11 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         final String usernamePropertyName = getUsernamePropertyName(agentTestDataTitle);
         final String passwordPropertyName = getPasswordPropertyName(agentTestDataTitle);
 
+        final String clientIdPropertyName = getClientIdPropertyName(agentTestDataTitle);
+        final String clientSecretPropertyName = getClientSecretPropertyName(agentTestDataTitle);
+        final String tokenUrlPropertyName = getTokenUrlPropertyName(agentTestDataTitle);
+        final String publicUrlPropertyName = getPublicUrlPropertyName(agentTestDataTitle);
+
         final String host = System.getProperty(hostPropertyName);
         final String username = System.getProperty(usernamePropertyName);
         final String password = System.getProperty(passwordPropertyName);
@@ -61,23 +68,56 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         final String loginUrl = System.getProperty(getLoginUrlPropertyName(agentTestDataTitle));
         final String ssoUrl = System.getProperty(getSsoUrlPropertyName(agentTestDataTitle));
 
-        final String clientId = System.getProperty(getClientIdPropertyName(agentTestDataTitle));
-        final String clientSecret = System.getProperty(getClientSecretPropertyName(agentTestDataTitle));
-        final String tokenUrl = System.getProperty(getTokenUrlPropertyName(agentTestDataTitle));
+        final String clientId = System.getProperty(clientIdPropertyName);
+        final String clientSecret = System.getProperty(clientSecretPropertyName);
+        final String tokenUrl = System.getProperty(tokenUrlPropertyName);
+        final String publicUrl = System.getProperty(publicUrlPropertyName);
 
-        if (StringUtils.isBlank(host)) throw new IllegalArgumentException(String.format("Property %s is not defined", hostPropertyName));
-        if (StringUtils.isBlank(username)) throw new IllegalArgumentException(String.format("Property %s is not defined", usernamePropertyName));
-        if (StringUtils.isBlank(password)) throw new IllegalArgumentException(String.format("Property %s is not defined", passwordPropertyName));
+        if (AuthenticationType.BASIC.equals(authenticationType)) {
+            if (StringUtils.isBlank(host))
+                throw new IllegalArgumentException(String.format("Property %s is not defined", hostPropertyName));
+            if (StringUtils.isBlank(username))
+                throw new IllegalArgumentException(String.format("Property %s is not defined", usernamePropertyName));
+            if (StringUtils.isBlank(password))
+                throw new IllegalArgumentException(String.format("Property %s is not defined", passwordPropertyName));
+        }
+
+        if (AuthenticationType.OAUTH.equals(authenticationType)) {
+            if (StringUtils.isBlank(clientId))
+                throw new IllegalArgumentException(String.format("Property %s is not defined", clientIdPropertyName));
+            if (StringUtils.isBlank(clientSecret))
+                throw new IllegalArgumentException(String.format("Property %s is not defined", clientSecretPropertyName));
+            if (StringUtils.isBlank(tokenUrl))
+                throw new IllegalArgumentException(String.format("Property %s is not defined", tokenUrlPropertyName));
+            if (Platform.API_MANAGEMENT.equals(platform)) {
+                if (StringUtils.isBlank(publicUrl)){
+                    throw new IllegalArgumentException(String.format("Property %s is not defined", publicUrlPropertyName));
+                }
+            }
+        }
+
+        boolean isApimgmtCfOauth = Platform.API_MANAGEMENT.equals(platform) && AuthenticationType.OAUTH.equals(authenticationType);
 
         ConnectionProperties connectionProperties = new ConnectionProperties(
                 username,
                 password,
-                host,
+                isApimgmtCfOauth ? publicUrl : host,
                 "443",
                 "https"
         );
 
-        return new AgentTestData(agentTestDataTitle, platform, cloudPlatformType, connectionProperties, loginUrl, ssoUrl, clientId, clientSecret, tokenUrl, authenticationType);
+        return new AgentTestData(
+                agentTestDataTitle,
+                platform,
+                cloudPlatformType,
+                connectionProperties,
+                loginUrl,
+                ssoUrl,
+                clientId,
+                clientSecret,
+                tokenUrl,
+                authenticationType
+        );
     }
 
     private static String getHostPropertyName(String agentTestDataTitle) {
@@ -102,6 +142,10 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
 
     private static String getTokenUrlPropertyName(String agentTestDataTitle) {
         return String.format("agent-test-data.%s.tokenUrl", agentTestDataTitle);
+    }
+
+    private static String getPublicUrlPropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.publicUrl", agentTestDataTitle);
     }
 
     private static String getLoginUrlPropertyName(String agentTestDataTitle) {
