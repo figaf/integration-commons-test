@@ -20,6 +20,9 @@ public class AgentTestData {
 
     private String loginPageUrl;
     private String ssoUrl;
+    private boolean useCustomIdp;
+    private String samlUrl;
+    private String idpName;
 
     private String clientId;
     private String clientSecret;
@@ -58,6 +61,9 @@ public class AgentTestData {
         requestContext.setOauthUrl(tokenUrl);
         requestContext.setAuthenticationType(authenticationType);
         requestContext.setSsoUrl(ssoUrl);
+        requestContext.setUseCustomIdp(useCustomIdp);
+        requestContext.setSamlUrl(samlUrl);
+        requestContext.setIdpName(idpName);
         requestContext.setLoginPageUrl(loginPageUrl);
 
         return requestContext;
