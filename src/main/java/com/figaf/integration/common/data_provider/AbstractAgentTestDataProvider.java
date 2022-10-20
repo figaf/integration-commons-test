@@ -67,9 +67,12 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
 
         final String loginUrl = System.getProperty(getLoginUrlPropertyName(agentTestDataTitle));
         final String ssoUrl = System.getProperty(getSsoUrlPropertyName(agentTestDataTitle));
+
         final boolean useCustomIdp = Boolean.parseBoolean(System.getProperty(getUseCustomIdpPropertyName(agentTestDataTitle)));
         final String samlUrl = System.getProperty(getSamlUrlPropertyName(agentTestDataTitle));
         final String idpName = System.getProperty(getIdpNamePropertyName(agentTestDataTitle));
+        final String idpApiClientId = System.getProperty(getIdpApiClientIdPropertyName(agentTestDataTitle));
+        final String idpApiClientSecret = System.getProperty(getIdpApiClientSecretPropertyName(agentTestDataTitle));
 
         final String clientId = System.getProperty(clientIdPropertyName);
         final String clientSecret = System.getProperty(clientSecretPropertyName);
@@ -119,6 +122,8 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
                 useCustomIdp,
                 samlUrl,
                 idpName,
+                idpApiClientId,
+                idpApiClientSecret,
                 clientId,
                 clientSecret,
                 tokenUrl,
@@ -172,6 +177,14 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
 
     private static String getIdpNamePropertyName(String agentTestDataTitle) {
         return String.format("agent-test-data.%s.idpName", agentTestDataTitle);
+    }
+
+    private static String getIdpApiClientIdPropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.idpApiClientId", agentTestDataTitle);
+    }
+
+    private static String getIdpApiClientSecretPropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.idpApiClientSecret", agentTestDataTitle);
     }
 
 }
