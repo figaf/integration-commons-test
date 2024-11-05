@@ -3,10 +3,7 @@ package com.figaf.integration.common.data_provider;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.figaf.integration.common.entity.AuthenticationType;
-import com.figaf.integration.common.entity.CloudPlatformType;
-import com.figaf.integration.common.entity.ConnectionProperties;
-import com.figaf.integration.common.entity.Platform;
+import com.figaf.integration.common.entity.*;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.platform.commons.util.StringUtils;
 
@@ -49,9 +46,10 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
             cloudPlatformType = null;
         } else {
             throw new IllegalArgumentException("Test Data folder name must start with one of the following prefixes: " +
-                    "['cpi-neo', 'cpi-cf', 'apimgmt-neo', 'apimgmt-cf', 'pro'] to define the type of the platform");
+                "['cpi-neo', 'cpi-cf', 'apimgmt-neo', 'apimgmt-cf', 'pro'] to define the type of the platform");
         }
 
+        final String authenticationTypePropertyName = getAuthenticationTypePropertyName(agentTestDataTitle);
         final String hostPropertyName = getHostPropertyName(agentTestDataTitle);
         final String usernamePropertyName = getUsernamePropertyName(agentTestDataTitle);
         final String passwordPropertyName = getPasswordPropertyName(agentTestDataTitle);
@@ -61,6 +59,11 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         final String tokenUrlPropertyName = getTokenUrlPropertyName(agentTestDataTitle);
         final String publicUrlPropertyName = getPublicUrlPropertyName(agentTestDataTitle);
 
+        String authenticationTypePropertyValue = System.getProperty(authenticationTypePropertyName, null);
+        //overwrite authenticationType if it's provided explicitly
+        if (authenticationTypePropertyValue != null) {
+            authenticationType = AuthenticationType.valueOf(authenticationTypePropertyValue);
+        }
         final String host = System.getProperty(hostPropertyName);
         final String username = System.getProperty(usernamePropertyName);
         final String password = System.getProperty(passwordPropertyName);
@@ -68,7 +71,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         final String loginUrl = System.getProperty(getLoginUrlPropertyName(agentTestDataTitle));
         final String ssoUrl = System.getProperty(getSsoUrlPropertyName(agentTestDataTitle));
 
-        final boolean useCustomIdp = Boolean.parseBoolean(System.getProperty(getUseCustomIdpPropertyName(agentTestDataTitle)));
+        final WebApiAccessMode webApiAccessMode = WebApiAccessMode.valueOf(System.getProperty(getWebApiAccessModePropertyName(agentTestDataTitle), "S_USER"));
         final String samlUrl = System.getProperty(getSamlUrlPropertyName(agentTestDataTitle));
         final String idpName = System.getProperty(getIdpNamePropertyName(agentTestDataTitle));
         final String idpApiClientId = System.getProperty(getIdpApiClientIdPropertyName(agentTestDataTitle));
@@ -78,6 +81,9 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         final String clientSecret = System.getProperty(clientSecretPropertyName);
         final String tokenUrl = System.getProperty(tokenUrlPropertyName);
         final String publicUrl = System.getProperty(publicUrlPropertyName);
+
+        final String certificatePath = System.getProperty(getCertificatePathPropertyName(agentTestDataTitle));
+        final String certificatePassword = System.getProperty(getCertificatePasswordPropertyName(agentTestDataTitle));
 
         if (AuthenticationType.BASIC.equals(authenticationType)) {
             if (StringUtils.isBlank(host))
@@ -96,7 +102,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
             if (StringUtils.isBlank(tokenUrl))
                 throw new IllegalArgumentException(String.format("Property %s is not defined", tokenUrlPropertyName));
             if (Platform.API_MANAGEMENT.equals(platform)) {
-                if (StringUtils.isBlank(publicUrl)){
+                if (StringUtils.isBlank(publicUrl)) {
                     throw new IllegalArgumentException(String.format("Property %s is not defined", publicUrlPropertyName));
                 }
             }
@@ -105,30 +111,36 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         boolean isApimgmtCfOauth = Platform.API_MANAGEMENT.equals(platform) && AuthenticationType.OAUTH.equals(authenticationType);
 
         ConnectionProperties connectionProperties = new ConnectionProperties(
-                username,
-                password,
-                isApimgmtCfOauth ? publicUrl : host,
-                "443",
-                "https"
+            username,
+            password,
+            isApimgmtCfOauth ? publicUrl : host,
+            "443",
+            "https"
         );
 
         return new AgentTestData(
-                agentTestDataTitle,
-                platform,
-                cloudPlatformType,
-                connectionProperties,
-                loginUrl,
-                ssoUrl,
-                useCustomIdp,
-                samlUrl,
-                idpName,
-                idpApiClientId,
-                idpApiClientSecret,
-                clientId,
-                clientSecret,
-                tokenUrl,
-                authenticationType
+            agentTestDataTitle,
+            platform,
+            cloudPlatformType,
+            connectionProperties,
+            loginUrl,
+            ssoUrl,
+            webApiAccessMode,
+            samlUrl,
+            idpName,
+            idpApiClientId,
+            idpApiClientSecret,
+            clientId,
+            clientSecret,
+            tokenUrl,
+            authenticationType,
+            certificatePath,
+            certificatePassword
         );
+    }
+
+    private static String getAuthenticationTypePropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.authenticationType", agentTestDataTitle);
     }
 
     private static String getHostPropertyName(String agentTestDataTitle) {
@@ -167,8 +179,8 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         return String.format("agent-test-data.%s.ssoUrl", agentTestDataTitle);
     }
 
-    private static String getUseCustomIdpPropertyName(String agentTestDataTitle) {
-        return String.format("agent-test-data.%s.useCustomIdp", agentTestDataTitle);
+    private static String getWebApiAccessModePropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.webApiAccessMode", agentTestDataTitle);
     }
 
     private static String getSamlUrlPropertyName(String agentTestDataTitle) {
@@ -185,6 +197,14 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
 
     private static String getIdpApiClientSecretPropertyName(String agentTestDataTitle) {
         return String.format("agent-test-data.%s.idpApiClientSecret", agentTestDataTitle);
+    }
+
+    private static String getCertificatePathPropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.certificatePath", agentTestDataTitle);
+    }
+
+    private static String getCertificatePasswordPropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.certificatePassword", agentTestDataTitle);
     }
 
 }

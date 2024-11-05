@@ -4,6 +4,12 @@ import com.figaf.integration.common.entity.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+
+import static java.lang.String.format;
 
 /**
  * @author Ilya Nesterov
@@ -20,7 +26,7 @@ public class AgentTestData {
 
     private String loginPageUrl;
     private String ssoUrl;
-    private boolean useCustomIdp;
+    private WebApiAccessMode webApiAccessMode;
     private String samlUrl;
     private String idpName;
     private String idpApiClientId;
@@ -30,6 +36,9 @@ public class AgentTestData {
     private String clientSecret;
     private String tokenUrl;
     private AuthenticationType authenticationType;
+
+    private String certificatePath;
+    private String certificatePassword;
 
     public RequestContext createRequestContext() {
         return createRequestContext("");
@@ -63,12 +72,20 @@ public class AgentTestData {
         requestContext.setOauthUrl(tokenUrl);
         requestContext.setAuthenticationType(authenticationType);
         requestContext.setSsoUrl(ssoUrl);
-        requestContext.setUseCustomIdp(useCustomIdp);
+        requestContext.setWebApiAccessMode(webApiAccessMode);
         requestContext.setIdpApiClientId(idpApiClientId);
         requestContext.setIdpApiClientSecret(idpApiClientSecret);
         requestContext.setSamlUrl(samlUrl);
         requestContext.setIdpName(idpName);
         requestContext.setLoginPageUrl(loginPageUrl);
+        if (certificatePath != null) {
+            try {
+                requestContext.setCertificate(FileUtils.readFileToByteArray(new File(certificatePath)));
+            } catch (IOException e) {
+                throw new RuntimeException(format("Can't read certificate file from %s", certificatePath));
+            }
+        }
+        requestContext.setCertificatePassword(certificatePassword);
 
         return requestContext;
 
