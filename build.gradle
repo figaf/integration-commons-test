@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.github.figaf'
-version = '2.1-IRT-4663-SNAPSHOT'
+version = '2.1'
 
 ext {
     enableSnapshotsForDependencyResolutionAndPublishing = project.findProperty('enableSnapshots') ?: 'false'
@@ -18,7 +18,7 @@ ext {
     assertjVersion = "3.26.3"
     logbackVersion = "1.5.7"
     hamcrestVersion = "2.2"
-    integrationCommonsVersion = '2.1-IRT-4663-SNAPSHOT'
+    integrationCommonsVersion = '2.1'
 }
 
 repositories {
