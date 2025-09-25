@@ -46,7 +46,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
             cloudPlatformType = null;
         } else {
             throw new IllegalArgumentException("Test Data folder name must start with one of the following prefixes: " +
-                "['cpi-neo', 'cpi-cf', 'apimgmt-neo', 'apimgmt-cf', 'pro'] to define the type of the platform");
+                    "['cpi-neo', 'cpi-cf', 'apimgmt-neo', 'apimgmt-cf', 'pro'] to define the type of the platform");
         }
 
         final String authenticationTypePropertyName = getAuthenticationTypePropertyName(agentTestDataTitle);
@@ -84,7 +84,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
 
         final String certificatePath = System.getProperty(getCertificatePathPropertyName(agentTestDataTitle));
         final String certificatePassword = System.getProperty(getCertificatePasswordPropertyName(agentTestDataTitle));
-
+        final boolean isIntegrationSuite = Boolean.parseBoolean(System.getProperty(getIntegrationSuitePropertyName(agentTestDataTitle)));
         if (AuthenticationType.BASIC.equals(authenticationType)) {
             if (StringUtils.isBlank(host))
                 throw new IllegalArgumentException(String.format("Property %s is not defined", hostPropertyName));
@@ -108,34 +108,30 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
             }
         }
 
-        boolean isApimgmtCfOauth = Platform.API_MANAGEMENT.equals(platform) && AuthenticationType.OAUTH.equals(authenticationType);
-
-        ConnectionProperties connectionProperties = new ConnectionProperties(
-            username,
-            password,
-            isApimgmtCfOauth ? publicUrl : host,
-            "443",
-            "https"
-        );
-
         return new AgentTestData(
-            agentTestDataTitle,
-            platform,
-            cloudPlatformType,
-            connectionProperties,
-            loginUrl,
-            ssoUrl,
-            webApiAccessMode,
-            samlUrl,
-            idpName,
-            idpApiClientId,
-            idpApiClientSecret,
-            clientId,
-            clientSecret,
-            tokenUrl,
-            authenticationType,
-            certificatePath,
-            certificatePassword
+                agentTestDataTitle,
+                platform,
+                cloudPlatformType,
+                loginUrl,
+                ssoUrl,
+                webApiAccessMode,
+                samlUrl,
+                idpName,
+                idpApiClientId,
+                idpApiClientSecret,
+                clientId,
+                clientSecret,
+                tokenUrl,
+                authenticationType,
+                certificatePath,
+                certificatePassword,
+                publicUrl,
+                host,
+                443,
+                "https",
+                username,
+                password,
+                isIntegrationSuite
         );
     }
 
@@ -207,4 +203,7 @@ public abstract class AbstractAgentTestDataProvider implements ArgumentsProvider
         return String.format("agent-test-data.%s.certificatePassword", agentTestDataTitle);
     }
 
+    private static String getIntegrationSuitePropertyName(String agentTestDataTitle) {
+        return String.format("agent-test-data.%s.integrationSuite", agentTestDataTitle);
+    }
 }
