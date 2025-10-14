@@ -22,7 +22,6 @@ public class AgentTestData {
     private final String title;
     private final Platform platform;
     private final CloudPlatformType cloudPlatformType;
-    private final ConnectionProperties connectionProperties;
 
     private String loginPageUrl;
     private String ssoUrl;
@@ -39,6 +38,13 @@ public class AgentTestData {
 
     private String certificatePath;
     private String certificatePassword;
+    private String publicApiUrl;
+    private String host;
+    private Integer port;
+    private String protocol;
+    private String username;
+    private String password;
+    private boolean isIntegrationSuite;
 
     public RequestContext createRequestContext() {
         return createRequestContext("");
@@ -49,18 +55,18 @@ public class AgentTestData {
         switch (platform) {
             case API_MANAGEMENT: {
                 requestContext = cloudPlatformType.equals(CloudPlatformType.NEO)
-                        ? RequestContext.apiMgmtNeo(connectionProperties)
-                        : RequestContext.apiMgmtCloudFoundry(connectionProperties, restTemplateWrapperKey);
+                        ? RequestContext.apiMgmtNeo()
+                        : RequestContext.apiMgmtCloudFoundry(restTemplateWrapperKey);
                 break;
             }
             case CPI: {
                 requestContext = cloudPlatformType.equals(CloudPlatformType.NEO)
-                        ? RequestContext.cpiNeo(connectionProperties)
-                        : RequestContext.cpiCloudFoundry(connectionProperties, restTemplateWrapperKey);
+                        ? RequestContext.cpiNeo()
+                        : RequestContext.cpiCloudFoundry(restTemplateWrapperKey);
                 break;
             }
             case PRO: {
-                requestContext = RequestContext.pro(connectionProperties);
+                requestContext = RequestContext.pro();
                 break;
             }
             default:
@@ -69,6 +75,7 @@ public class AgentTestData {
 
         requestContext.setClientId(clientId);
         requestContext.setClientSecret(clientSecret);
+        requestContext.setRestTemplateWrapperKey(restTemplateWrapperKey);
         requestContext.setOauthUrl(tokenUrl);
         requestContext.setAuthenticationType(authenticationType);
         requestContext.setSsoUrl(ssoUrl);
@@ -78,6 +85,13 @@ public class AgentTestData {
         requestContext.setSamlUrl(samlUrl);
         requestContext.setIdpName(idpName);
         requestContext.setLoginPageUrl(loginPageUrl);
+        requestContext.setPublicApiUrl(publicApiUrl);
+        requestContext.setHost(host);
+        requestContext.setPort(port);
+        requestContext.setProtocol(protocol);
+        requestContext.setUsername(username);
+        requestContext.setPassword(password);
+        requestContext.setIntegrationSuite(isIntegrationSuite);
         if (certificatePath != null) {
             try {
                 requestContext.setCertificate(FileUtils.readFileToByteArray(new File(certificatePath)));
